@@ -144,19 +144,15 @@ def process_ai(email_data):
 
         text_html = data[4]
         response_data = ''
-        if text_html:
-          text_for_gpt = text_html
-        else:
-          text_for_gpt = text
+        text_for_gpt = text +'\n'+ subject
 
         retries = 0
         while retries < 3:
             try:
-                print('pepeg')
                 completion =  client.chat.completions.create(
                 # gpt-4-0613
                 # gpt-3.5-turbo
-                messages = [{"role": "user", "content": f"Из предоставленного текст пожалуйста выпиши мне должность на которую пришёл запрос. Предоставь ответ только должностью.Предоставленный текст: {text}."}],
+                messages = [{"role": "user", "content": f"Из предоставленного текст пожалуйста выпиши мне должность на которую пришёл запрос. Предоставь ответ только должностью.Предоставленный текст: {text_for_gpt}."}],
                 model="gpt-3.5-turbo")
                 # Extract the required information from the completion
                 response_data = completion.choices[0].message.content
@@ -182,21 +178,21 @@ def process_ai(email_data):
                 ai_responses.append(combined_list)
 
     print(ai_responses)
-    #save_ai_responses()  # Save AI responses after all emails are processed
+    save_ai_responses()  # Save AI responses after all emails are processed
 
 
 #cvs_data
 def save_ai_responses():
     """Saves AI responses to the database"""
 
-    insert_sql = """INSERT INTO cvs_data (job_title, sender, subject, date) VALUES (%s, %s, %s, %s)"""
+    insert_sql = """INSERT INTO employees (email, subject, job_title, date) VALUES (%s, %s, %s, %s)"""
 
 
     for data in ai_responses:
         job_title, sender, subject, date = data
 
         # If not, insert the new data
-        values = (job_title, sender, subject, date)
+        values = (sender,subject,job_title,date)
         cursor.execute(insert_sql, values)
 
     connection.commit()
