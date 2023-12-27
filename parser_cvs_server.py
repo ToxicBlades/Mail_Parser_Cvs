@@ -5,37 +5,25 @@ from bs4 import BeautifulSoup
 from openai import OpenAI
 import logging
 import mysql.connector
-from sshtunnel import SSHTunnelForwarder
+import os
 
-from config import EMAIL, PASSWORD, DIR , APIKEY ,SSH_PASSWORD, SSH_USERNAME, DATABASE_PASSWORD, DATABASE_USERNAME, SSH_HOST, DBNAME
+from configdb import EMAIL_CV, PASSWORD_CV , APIKEY, DATABASE_PASSWORD, DATABASE_USERNAME, DBNAME
 
-
-ssh_host = SSH_HOST
-ssh_username = SSH_USERNAME
-ssh_password = SSH_PASSWORD
+# Use environment variables or a config file for storing these sensitive details
 database_username = DATABASE_USERNAME
 database_password = DATABASE_PASSWORD
 database_name = DBNAME
-localhost = '127.0.0.1'
-
-tunnel = SSHTunnelForwarder(
-        (ssh_host, 22),
-        ssh_username = ssh_username,
-        ssh_password = ssh_password,
-        remote_bind_address = ('127.0.0.1', 3306)
-    )
-
-tunnel.start()
+localhost = "127.0.0.1"  # or "localhost"
 
 connection = mysql.connector.connect(
-        host='127.0.0.1',
-        user=database_username,
-        passwd=database_password,
-        db=database_name,
-        port=tunnel.local_bind_port
-    )
+    host=localhost,
+    user=database_username,
+    passwd=database_password,
+    db=database_name
+)
 
 cursor = connection.cursor()
+
 
 
 #Set your apikey for chat gpt
@@ -45,7 +33,7 @@ client = OpenAI(
 )
 
 #Where are we gonna save our file after work
-OUTPUT_DIR = DIR
+OUTPUT_DIR = os.getcwd()
 
 ai_responses = []  # List to save AI responses
 
@@ -203,6 +191,6 @@ def save_ai_responses():
 # Setup logging
 logging.basicConfig(filename='email_processing.log', level=logging.DEBUG)
 
-username = EMAIL  #your mail here
-password = PASSWORD  #your password for apps here
+username = EMAIL_CV  #your mail here
+password = PASSWORD_CV  #your password for apps here
 parse_emails(username, password)
